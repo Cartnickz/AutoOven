@@ -24,7 +24,7 @@ void setup()  {
 
   Serial.begin(115200);
   while (!Serial);  // Wait for Arduino Serial Monitor to open
-  delay(100);
+  delay(10000);
   if (timeStatus()!= timeSet) {
     Serial.println("Unable to sync with the RTC");
   } else {
