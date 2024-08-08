@@ -10,9 +10,9 @@
 
 using namespace std;
 
-int thermoDO = 12;
-int thermoCS = 10;
-int thermoCLK = 13;
+int thermoDO = 25;
+int thermoCS = 27;
+int thermoCLK = 35;
 
 MAX6675 thermocouple(thermoCLK, thermoCS, thermoDO);
 int startTime = 0;

@@ -12,8 +12,8 @@ int MISO_0_PIN = 12;  // screenMISO
 int SCLK_0_PIN = 13;  // screenSCLK
 
 int MOSI_1_PIN = 26;
-int MISO_1_PIN = 39;  // meatDO
-int SCLK_1_PIN = 27;  // meatCLK
+int MISO_1_PIN = 39;  // screenCS
+int SCLK_1_PIN = 27;  
 
 int MOSI_2_PIN = 50;  // not sure how to actually access these...
 int MISO_2_PIN = 54;
@@ -21,22 +21,22 @@ int SCLK_2_PIN = 45;
 
 
 // initialize variables for MAX6675s
-int meatCLK = SCLK_1_PIN;  // pin 27
-int meatCS = 25;
-int meatDO = MISO_1_PIN;  // pin 39
+int meatCLK = 35;
+int meatCS = 34;
+int meatDO = 33;
 MAX6675 meatThermocouple(meatCLK, meatCS, meatDO);
 
 // initialize variables for the screen
-int screenRST = 7;
-int screenBL = 8;
-int screenDC = 9;
-int screenCS = 10;
+int screenRST = 40;
+int screenBL = 22;
+int screenDC = 41;
+int screenCS = 39;
 int screenSCLK = SCLK_0_PIN;  // pin 13
 int screenMOSI = MOSI_0_PIN;  // pin 11
 int screenMISO = MISO_0_PIN;  // pin 12
-Arduino_DataBus *bus = new Arduino_HWSPI(screenDC, screenCS); //,screenSCLK, screenMOSI, screenMISO);
-Arduino_GFX *gfx = new Arduino_ILI9488_18bit(bus, screenRST);
 
+Arduino_DataBus *bus = create_default_Arduino_DataBus();
+Arduino_GFX *gfx = new Arduino_ILI9488_18bit(bus, screenRST, 1);
 
 // initialize variables for the timer
 int startTime = 0;
@@ -54,9 +54,11 @@ void setup() {
   Serial.print(" F\n");
 
   // setup screen
-  gfx->fillScreen(BLUE);
+  gfx->begin();
+  gfx->fillScreen(BLACK);
   pinMode(screenBL, OUTPUT);
   digitalWrite(screenBL, HIGH);
+  gfx->setTextSize(5);
   gfx->setCursor(10, 10);
   gfx->setTextColor(RED);
   gfx->println("Running...");
@@ -88,10 +90,11 @@ void loop() {
   Serial.println(meatThermocouple.readFahrenheit());
 
   // loop screen
-  gfx->fillScreen(BLACK);
+  gfx->fillRect(0, 0, 400, 200, BLACK);
   gfx->setCursor(10, 10);
   gfx->setTextColor(WHITE);
-  gfx->println(meatThermocouple.readFahrenheit());
+  gfx->print(meatThermocouple.readFahrenheit());
+  gfx->print(" F");
   gfx->setCursor(10, 100);
   gfx->setTextColor(WHITE);
   gfx->println(runTime);
