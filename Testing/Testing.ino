@@ -7,9 +7,9 @@
 
 
 // list SPI teensy pins
-int MOSI_0_PIN = 11;
-int MISO_0_PIN = 12;
-int SCLK_0_PIN = 13;
+int MOSI_0_PIN = 11;  // screenMOSI
+int MISO_0_PIN = 12;  // screenMISO
+int SCLK_0_PIN = 13;  // screenSCLK
 
 int MOSI_1_PIN = 26;
 int MISO_1_PIN = 39;  // meatDO
@@ -27,14 +27,15 @@ int meatDO = MISO_1_PIN;  // pin 39
 MAX6675 meatThermocouple(meatCLK, meatCS, meatDO);
 
 // initialize variables for the screen
+int screenRST = 7;
 int screenBL = 8;
 int screenDC = 9;
 int screenCS = 10;
 int screenSCLK = SCLK_0_PIN;  // pin 13
 int screenMOSI = MOSI_0_PIN;  // pin 11
 int screenMISO = MISO_0_PIN;  // pin 12
-Arduino_DataBus *bus = new Arduino_HWSPI(screenDC, screenCS, screenSCLK, screenMOSI, screenMISO);
-Arduino_GFX *gfx = new Arduino_ILI9341(bus, 17 /* RST */);
+Arduino_DataBus *bus = new Arduino_HWSPI(screenDC, screenCS); //,screenSCLK, screenMOSI, screenMISO);
+Arduino_GFX *gfx = new Arduino_ILI9488_18bit(bus, screenRST);
 
 
 // initialize variables for the timer
@@ -50,7 +51,7 @@ void setup() {
   // setup MAX6675s
   Serial.print("Meat Thermometer Test Reading:\t");
   Serial.print(meatThermocouple.readFahrenheit());
-  Serial.print(" F\n")
+  Serial.print(" F\n");
 
   // setup screen
   gfx->fillScreen(BLUE);
@@ -66,7 +67,7 @@ void setup() {
   startTime = now();
   Serial.print("Time started: ");
   Serial.print(startTime);
-  Serial.print(" s.")
+  Serial.print(" s.");
 
 }
 
@@ -84,13 +85,13 @@ void loop() {
   Serial.print('\t');
 
   // loop for MAX6675s
-  Serial.println(thermocouple.readFahrenheit());
+  Serial.println(meatThermocouple.readFahrenheit());
 
   // loop screen
   gfx->fillScreen(BLACK);
   gfx->setCursor(10, 10);
   gfx->setTextColor(WHITE);
-  gfx->println(thermocouple.readFahrenheit());
+  gfx->println(meatThermocouple.readFahrenheit());
   gfx->setCursor(10, 100);
   gfx->setTextColor(WHITE);
   gfx->println(runTime);
