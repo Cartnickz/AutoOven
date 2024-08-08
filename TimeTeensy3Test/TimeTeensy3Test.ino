@@ -6,8 +6,7 @@
 
 #include <TimeLib.h>
 #include "max6675.h"
-#include <iostream>
-#include <fstream>
+
 
 using namespace std;
 
