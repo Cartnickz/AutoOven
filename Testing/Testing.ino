@@ -21,10 +21,15 @@ int SCLK_2_PIN = 45;
 
 
 // initialize variables for MAX6675s
-int meatCLK = 35;
-int meatCS = 34;
-int meatDO = 33;
-MAX6675 meatThermocouple(meatCLK, meatCS, meatDO);
+int thermoCLK = 37;
+int thermoDO = 33;
+int meatCS = 36;
+int ovenCS = 35;
+int roomCS = 34;
+
+MAX6675 meatThermocouple(thermoCLK, meatCS, thermoDO);
+MAX6675 ovenThermocouple(thermoCLK, ovenCS, thermoDO);
+MAX6675 roomThermocouple(thermoCLK, roomCS, thermoDO);
 
 // initialize variables for the screen
 int screenRST = 40;
@@ -45,7 +50,6 @@ int runTime = 0;
 void setup() {
   // setup Serial
   Serial.begin(115200);
-  while(!Serial);
   delay(1000);
 
   // setup MAX6675s
@@ -58,7 +62,7 @@ void setup() {
   gfx->fillScreen(BLACK);
   pinMode(screenBL, OUTPUT);
   digitalWrite(screenBL, HIGH);
-  gfx->setTextSize(5);
+  gfx->setTextSize(2);
   gfx->setCursor(10, 10);
   gfx->setTextColor(RED);
   gfx->println("Running...");
@@ -94,6 +98,12 @@ void loop() {
   gfx->setCursor(10, 10);
   gfx->setTextColor(WHITE);
   gfx->print(meatThermocouple.readFahrenheit());
+  gfx->print(" F");
+  gfx->setCursor(150, 10);
+  gfx->print(ovenThermocouple.readFahrenheit());
+  gfx->print(" F");
+  gfx->setCursor(300, 10);
+  gfx->print(roomThermocouple.readFahrenheit());
   gfx->print(" F");
   gfx->setCursor(10, 100);
   gfx->setTextColor(WHITE);
