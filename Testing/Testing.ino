@@ -26,6 +26,9 @@ int thermoDO = 33;
 int meatCS = 36;
 int ovenCS = 35;
 int roomCS = 34;
+float meatTemp = 0;
+float ovenTemp = 0;
+float roomTemp = 0;
 
 MAX6675 meatThermocouple(thermoCLK, meatCS, thermoDO);
 MAX6675 ovenThermocouple(thermoCLK, ovenCS, thermoDO);
@@ -47,15 +50,17 @@ Arduino_GFX *gfx = new Arduino_ILI9488_18bit(bus, screenRST, 1);
 int startTime = 0;
 int runTime = 0;
 
+// initialize other variables
+float tempSet = 0;
+
 void setup() {
   // setup Serial
   Serial.begin(115200);
   delay(1000);
 
+  // setup other pins
+
   // setup MAX6675s
-  Serial.print("Meat Thermometer Test Reading:\t");
-  Serial.print(meatThermocouple.readFahrenheit());
-  Serial.print(" F\n");
 
   // setup screen
   gfx->begin();
@@ -66,19 +71,18 @@ void setup() {
   gfx->setCursor(10, 10);
   gfx->setTextColor(RED);
   gfx->println("Running...");
-  Serial.println("Screen changed BLUE");
   
+  // countdown start
+  for (int i = 30; i > 0; i--) {
+    gfx->fillRect(0, 0, 100, 100, BLACK);
+    gfx->setCursor(10, 10);
+    gfx->setTextColor(WHITE);
+    gfx->print(i);
+    delay(1000);
+  }
+
   // setup timer
   setSyncProvider(getTeensy3Time);
-  startTime = now();
-  Serial.print("Time started: ");
-  Serial.print(startTime);
-  Serial.print(" s.");
-
-}
-
-void loop() {
-  // loop timer
   if (Serial.available()) {
     time_t t = processSyncMessage();
     if (t != 0) {
@@ -86,28 +90,64 @@ void loop() {
       setTime(t);
     }
   }
+  startTime = now();
+  Serial.print("Time started: ");
+  Serial.print(startTime);
+  Serial.println(" s.");
+
+}
+
+void loop() {
+  // loop timer
+
   runTime = now()-startTime;
   Serial.print(runTime);
-  Serial.print('\t');
+  Serial.print("\t");
 
   // loop for MAX6675s
-  Serial.println(meatThermocouple.readFahrenheit());
+  meatTemp = meatThermocouple.readFahrenheit();
+  ovenTemp = ovenThermocouple.readFahrenheit();
+  roomTemp = roomThermocouple.readFahrenheit();
+  
+  Serial.print(meatTemp);
+  Serial.print("\t");
+  Serial.print(ovenTemp);
+  Serial.print("\t");
+  Serial.println(roomTemp);
+
+  // other loops
+  tempSet = floor(analogRead(A9) * 400 / 842 + 100);
+
+
+
 
   // loop screen
   gfx->fillRect(0, 0, 400, 200, BLACK);
   gfx->setCursor(10, 10);
   gfx->setTextColor(WHITE);
-  gfx->print(meatThermocouple.readFahrenheit());
+  gfx->print(meatTemp);
   gfx->print(" F");
   gfx->setCursor(150, 10);
-  gfx->print(ovenThermocouple.readFahrenheit());
+  gfx->print(ovenTemp);
   gfx->print(" F");
   gfx->setCursor(300, 10);
-  gfx->print(roomThermocouple.readFahrenheit());
+  gfx->print(roomTemp);
   gfx->print(" F");
   gfx->setCursor(10, 100);
   gfx->setTextColor(WHITE);
-  gfx->println(runTime);
+  gfx->print(runTime);
+  gfx->println(" s");
+  gfx->setCursor(150, 100);
+  if (ovenTemp < (tempSet - 10)) {
+    gfx->setTextColor(ORANGE);
+  } else if (ovenTemp > (tempSet + 10)) {
+    gfx->setTextColor(RED);
+  } else {
+    gfx->setTextColor(GREEN);
+  }
+  gfx->print(int(tempSet));
+  gfx->println(" F");
+  gfx->setTextColor(WHITE);
   
   // loop delay
   delay(1000);
