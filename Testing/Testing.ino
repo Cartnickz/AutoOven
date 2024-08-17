@@ -155,6 +155,7 @@ void screenInit(){
   gfx->fillScreen(BLACK);
   pinMode(screenBL, OUTPUT);
   digitalWrite(screenBL, HIGH);
+  gfx->setTextSize(2);
 }
 
 void countdownDisplay(int seconds){
