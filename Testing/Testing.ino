@@ -28,9 +28,9 @@ int roomCS = 34;
 float meatTemp = 0;
 float ovenTemp = 0;
 float roomTemp = 0;
-float lastMeatTemp = 0;
-float lastOvenTemp = 0;
-float lastRoomTemp = 0;
+String lastMeatTemp = "";
+String lastOvenTemp = "";
+String lastRoomTemp = "";
 
 MAX6675 meatThermocouple(thermoCLK, meatCS, thermoDO);
 MAX6675 ovenThermocouple(thermoCLK, ovenCS, thermoDO);
@@ -67,7 +67,7 @@ void setup() {
 
   // screen
   screenInit();
-  countdownDisplay(30);
+  countdownDisplay(4);
   
   // timer
   rtcInit();
@@ -96,7 +96,7 @@ void loop() {
 
   // print log 
   if (serialOutTimer >= 1000) {
-    serialOutTemps();
+    // serialOutTemps();
     serialOutTimer -= 1000;
   }
 
@@ -110,20 +110,22 @@ void loop() {
  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 
-void updateDisplayTemp(int x, int y, float lastTemp, float currentTemp) {
+String updateDisplayTemp(int x, int y, String lastTemp, float currentTemp) {
+  String printTempVar = String(currentTemp) + " F";
   gfx->setCursor(x, y);                      
   gfx->setTextColor(BLACK);
-  gfx->print(String(lastTemp) + " F");
+  gfx->print(lastTemp);
+  gfx->setCursor(x, y);
   gfx->setTextColor(WHITE);
-  gfx->print(String(currentTemp) + " F");
-  lastTemp = currentTemp;
+  gfx->print(printTempVar);
+  return printTempVar;
 }
 
 
 void updateDisplayTemps() {
-  updateDisplayTemp(10, 10, lastMeatTemp, meatTemp);
-  updateDisplayTemp(150, 10, lastOvenTemp, ovenTemp);
-  updateDisplayTemp(300, 10, lastRoomTemp, roomTemp);
+  lastMeatTemp = updateDisplayTemp(10, 10, lastMeatTemp, meatTemp);
+  lastOvenTemp = updateDisplayTemp(150, 10, lastOvenTemp, ovenTemp);
+  lastRoomTemp = updateDisplayTemp(300, 10, lastRoomTemp, roomTemp);
 }
 
 
@@ -141,9 +143,10 @@ void serialOutTemps() {
 void updateDisplaySeconds() {
   gfx->setCursor(10, 300);                      
   gfx->setTextColor(BLACK);
-  gfx->print(String(runTime) + "s");
-  gfx->setTextColor(WHITE);
   gfx->print(String(lastRunTime) + "s");
+  gfx->setCursor(10, 300);
+  gfx->setTextColor(WHITE);
+  gfx->print(String(runTime) + "s");
   lastRunTime = runTime;
 }
 
@@ -152,10 +155,6 @@ void screenInit(){
   gfx->fillScreen(BLACK);
   pinMode(screenBL, OUTPUT);
   digitalWrite(screenBL, HIGH);
-  gfx->setTextSize(2);
-  gfx->setCursor(100, 10);
-  gfx->setTextColor(RED);
-  gfx->println("Loading...");
 }
 
 void countdownDisplay(int seconds){
@@ -164,6 +163,7 @@ void countdownDisplay(int seconds){
       gfx->setTextColor(WHITE);
       gfx->print(i);
       delay(1000);
+      gfx->setCursor(10, 10);
       gfx->setTextColor(BLACK);
       gfx->print(i);
   }
