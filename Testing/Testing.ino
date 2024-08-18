@@ -81,9 +81,7 @@ void loop() {
 
   // gather temperatures and update screen
   if (thermoTimer >= 500) {
-    meatTemp = meatThermocouple.readFahrenheit();
-    ovenTemp = ovenThermocouple.readFahrenheit();
-    roomTemp = roomThermocouple.readFahrenheit();
+    gatherTemps();
     updateDisplayTemps();
     thermoTimer -= 500;
   }
@@ -109,6 +107,14 @@ void loop() {
  |
  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
+// Display functions  --------------------------------------------
+void screenInit(){
+  gfx->begin();
+  gfx->fillScreen(BLACK);
+  pinMode(screenBL, OUTPUT);
+  digitalWrite(screenBL, HIGH);
+  gfx->setTextSize(2);
+}
 
 String updateDisplayTemp(int x, int y, String lastTemp, float currentTemp) {
   String printTempVar = String(currentTemp) + " F";
@@ -121,25 +127,6 @@ String updateDisplayTemp(int x, int y, String lastTemp, float currentTemp) {
   return printTempVar;
 }
 
-
-void updateDisplayTemps() {
-  lastMeatTemp = updateDisplayTemp(10, 10, lastMeatTemp, meatTemp);
-  lastOvenTemp = updateDisplayTemp(150, 10, lastOvenTemp, ovenTemp);
-  lastRoomTemp = updateDisplayTemp(300, 10, lastRoomTemp, roomTemp);
-}
-
-
-void serialOutTemps() {
-  Serial.print(runTime);
-  Serial.print("\t");
-  Serial.print(meatTemp);
-  Serial.print("\t");
-  Serial.print(ovenTemp);
-  Serial.print("\t");
-  Serial.println(roomTemp);
-}
-
-
 void updateDisplaySeconds() {
   gfx->setCursor(10, 300);                      
   gfx->setTextColor(BLACK);
@@ -148,14 +135,6 @@ void updateDisplaySeconds() {
   gfx->setTextColor(WHITE);
   gfx->print(String(runTime) + "s");
   lastRunTime = runTime;
-}
-
-void screenInit(){
-  gfx->begin();
-  gfx->fillScreen(BLACK);
-  pinMode(screenBL, OUTPUT);
-  digitalWrite(screenBL, HIGH);
-  gfx->setTextSize(2);
 }
 
 void countdownDisplay(int seconds){
@@ -170,7 +149,37 @@ void countdownDisplay(int seconds){
   }
 }
 
+void updateDisplayTemps() {
+  lastMeatTemp = updateDisplayTemp(10, 10, lastMeatTemp, meatTemp);
+  lastOvenTemp = updateDisplayTemp(150, 10, lastOvenTemp, ovenTemp);
+  lastRoomTemp = updateDisplayTemp(300, 10, lastRoomTemp, roomTemp);
+}
 
+
+void drawAxes() {
+  gfx->drawLine(20, 170, 470, 170, 0xAD55);  // graph separator
+  gfx->drawLine(30, 60, 470, 60, WHITE);  // y-axis
+  gfx->drawLine(10, 250, 470, 250, WHITE);  // x-axis
+}
+
+// Information functions --------------------------------------------
+void gatherTemps() {
+  meatTemp = meatThermocouple.readFahrenheit();
+  ovenTemp = ovenThermocouple.readFahrenheit();
+  roomTemp = roomThermocouple.readFahrenheit();
+}
+
+void serialOutTemps() {
+  Serial.print(runTime);
+  Serial.print("\t");
+  Serial.print(meatTemp);
+  Serial.print("\t");
+  Serial.print(ovenTemp);
+  Serial.print("\t");
+  Serial.println(roomTemp);
+}
+
+// Timer functions  -------------------------------------------------
 void rtcInit() {
   setSyncProvider(getTeensy3Time);
   if (Serial.available()) {
@@ -185,7 +194,6 @@ void rtcInit() {
 time_t getTeensy3Time() {
   return Teensy3Clock.get();
 }
-
 
 #define TIME_HEADER  "T"   // Header tag for serial time sync message
 unsigned long processSyncMessage() {
