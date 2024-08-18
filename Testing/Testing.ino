@@ -80,7 +80,7 @@ void setup() {
   // timer
   rtcInit();
   startTime = now();
-  drawGraph(graphDomain);
+  drawGraph(graphDomain / 1000);
 }
 
 
@@ -90,6 +90,7 @@ void loop() {
   // gather temperatures and update screen
   if (thermoTimer >= 500) {
     gatherTemps();
+    delay(250);
     updateDisplayTemps();
     thermoTimer -= 500;
   }
@@ -105,12 +106,29 @@ void loop() {
   }
   // graph
   if (plotTimer >= plotPeriod) {
-    plotPoint(30, 160, RED, graphDomain, 100, 230, 30, 60, 470, 90);
+    plotPoint(runTime, round(meatTemp), YELLOW, graphDomain);
+    roomTempList[plotListIndex] = round(meatTemp);
+    timeList[plotListIndex] = runTime;
+    plotListIndex++;
+    plotTimer -= plotPeriod;
   }
 
   if (graphResetTimer >= graphDomain) {
+    for (uint i = 0; i < (sizeof(timeList) / sizeof(timeList[0])); i++) {
+      plotPoint(timeList[i], roomTempList[i], BLACK, graphDomain);
+      if (i % 2 == 0) {
+        roomTempList[i/2] = roomTempList[i];
+        timeList[i/2] = timeList[i]; 
+        plotPoint(timeList[i/2], roomTempList[i/2], BLUE, graphDomain * 2);
+      }
+    }
+    labelXAxis(30, 470, 240, 5, 0, graphDomain / 1000, BLACK);
+
+    
     graphDomain *= 2;
     plotPeriod *= 2;
+    labelXAxis(30, 470, 240, 5, 0, graphDomain / 1000, WHITE);
+    plotListIndex = 150;
   } 
 
 }
@@ -164,11 +182,33 @@ void countdownDisplay(int seconds){
   }
 }
 
-void plotPoint(int xValue, int yValue, uint16_t color,
-               int xMax, int yMin, int yMax,
-               int x1, int y1, int x2, int y2) {
-  gfx->drawPixel(map(xValue, 0, xMax, x1, x2), 
-                 map(yValue, yMin, yMax, y2, y1), color);
+void plotPoint(int xValue, int yValue, uint16_t color, int xDomain) {
+  int x;
+  int y;
+  int yMin = 100;
+  int yMax = 230;
+  int boxSize[4] = {30, 60, 470, 190};
+  if (yValue > 100 && yValue < 230) {
+    x = map(xValue, 0, xDomain / 1000, boxSize[0], boxSize[2]);
+    y = map(yValue, yMin, yMax, boxSize[3], boxSize[1]);
+    if (x > boxSize[0] + 1) {
+      gfx->fillRect(x - 1, y - 1, 3, 3, color);
+    } else if (x == boxSize[0]) {
+      gfx->fillRect(x + 1, y - 1, 1, 3, color);
+    }
+  } else if (yValue > 60 && yValue < 80) {
+    yMin = 60;
+    yMax = 80;
+    boxSize[1] = 190;
+    boxSize[3] = 230;
+    x = map(xValue, 0, xDomain / 1000, boxSize[0], boxSize[2]);
+    y = map(yValue, yMin, yMax, boxSize[3], boxSize[1]);
+    if (x > boxSize[0] + 1) {
+      gfx->fillRect(x - 1, y - 1, 3, 3, color);
+    } else if (x == boxSize[0]) {
+      gfx->fillRect(x + 1, y - 1, 1, 3, color);
+    }
+  }
 }
 
 void updateDisplayTemps() {
@@ -205,7 +245,7 @@ void labelYAxis(int x, int y, int y1, int n, int start, int end, uint16_t color)
     gfx->print(value.substring(0, value.length() - 3));
   }
   gfx->setCursor(x + 4, 206);
-  gfx->print("75");
+  gfx->print("70");
 }
 
 void labelXAxis(int x, int x1, int y, int n, int start, int end, uint16_t color) {
