@@ -31,9 +31,13 @@ String lastMeatTemp = "";
 String lastOvenTemp = "";
 String lastRoomTemp = "";
 
+int roomTempList[300];
+int timeList[300];
+
 MAX6675 meatThermocouple(thermoCLK, meatCS, thermoDO);
 MAX6675 ovenThermocouple(thermoCLK, ovenCS, thermoDO);
 MAX6675 roomThermocouple(thermoCLK, roomCS, thermoDO);
+
 
 // initialize variables for the screen
 int screenRST = 40;
@@ -54,9 +58,14 @@ int lastRunTime = 0;
 elapsedMillis thermoTimer;
 elapsedMillis serialOutTimer;
 elapsedMillis secondsTimer;
+elapsedMillis graphResetTimer;
+elapsedMillis plotTimer;
 
 // initialize other variables
 float tempSet = 0;
+unsigned long int graphDomain = 300000;
+unsigned long int plotPeriod = 1000;
+int plotListIndex = 0;
 
 
 void setup() {
@@ -71,32 +80,38 @@ void setup() {
   // timer
   rtcInit();
   startTime = now();
-  drawGraph();
+  drawGraph(graphDomain);
 }
 
 
 void loop() {
   // loop timer
   runTime = now()-startTime;
-
   // gather temperatures and update screen
   if (thermoTimer >= 500) {
     gatherTemps();
     updateDisplayTemps();
     thermoTimer -= 500;
   }
-
   // update screen display
   if (secondsTimer >= 1000) {
     updateDisplaySeconds();
     secondsTimer -= 1000;
   }
-
   // print log 
   if (serialOutTimer >= 1000) {
     // serialOutTemps();
     serialOutTimer -= 1000;
   }
+  // graph
+  if (plotTimer >= plotPeriod) {
+    plotPoint(30, 160, RED, graphDomain, 100, 230, 30, 60, 470, 90);
+  }
+
+  if (graphResetTimer >= graphDomain) {
+    graphDomain *= 2;
+    plotPeriod *= 2;
+  } 
 
 }
 
@@ -149,6 +164,13 @@ void countdownDisplay(int seconds){
   }
 }
 
+void plotPoint(int xValue, int yValue, uint16_t color,
+               int xMax, int yMin, int yMax,
+               int x1, int y1, int x2, int y2) {
+  gfx->drawPixel(map(xValue, 0, xMax, x1, x2), 
+                 map(yValue, yMin, yMax, y2, y1), color);
+}
+
 void updateDisplayTemps() {
   gfx->setTextSize(2);
   gfx->setTextColor(WHITE);
@@ -157,20 +179,18 @@ void updateDisplayTemps() {
   lastRoomTemp = updateDisplayTemp(300, 10, lastRoomTemp, roomTemp);
 }
 
+void drawGraph(int timeBound) {
+  drawYGridLines(25, 70, 470, 190, 6, 0xAD55);
+  drawXGridLines(30, 60, 470, 235, 5, 0xAD55);
+  drawAxes();
+  labelYAxis(5, 70, 190, 6, 100, 220, WHITE);
+  labelXAxis(30, 470, 240, 5, 0, timeBound, WHITE);
+}
 
 void drawAxes() {
   gfx->drawLine(10, 190, 470, 190, WHITE);  // graph separator
   gfx->drawLine(30, 60, 30, 250, WHITE);  // y-axis
   gfx->drawLine(10, 230, 470, 230, WHITE);  // x-axis
-}
-
-void drawYGridLines(int x, int y, int x1, int y1, int n, uint16_t color){
-  int y2 = 0;
-  for (int i = 0; i < n; i++) {
-    y2 = y + round(i * (y1-y)/n);
-    gfx->drawLine(x, y2, x1, y2, color);
-  }
-  gfx->drawLine(x, 210, x1, 210, color);  // room temp line
 }
 
 void labelYAxis(int x, int y, int y1, int n, int start, int end, uint16_t color) {
@@ -201,6 +221,14 @@ void labelXAxis(int x, int x1, int y, int n, int start, int end, uint16_t color)
   }
 }
 
+void drawYGridLines(int x, int y, int x1, int y1, int n, uint16_t color){
+  int y2 = 0;
+  for (int i = 0; i < n; i++) {
+    y2 = y + round(i * (y1-y)/n);
+    gfx->drawLine(x, y2, x1, y2, color);
+  }
+  gfx->drawLine(x, 210, x1, 210, color);  // room temp line
+}
 
 void drawXGridLines(int x, int y, int x1, int y1, int n, uint16_t color){
   int x2 = 0;
@@ -210,13 +238,6 @@ void drawXGridLines(int x, int y, int x1, int y1, int n, uint16_t color){
   }
 }
 
-void drawGraph() {
-  drawYGridLines(25, 70, 470, 190, 6, 0xAD55);
-  drawXGridLines(30, 60, 470, 235, 5, 0xAD55);
-  drawAxes();
-  labelYAxis(5, 70, 190, 6, 100, 220, WHITE);
-  labelXAxis(30, 470, 240, 5, 0, 5, WHITE);
-}
 
 // Information functions --------------------------------------------
 void gatherTemps() {
