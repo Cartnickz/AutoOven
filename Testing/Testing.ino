@@ -5,7 +5,6 @@
 #include <Arduino_GFX_Library.h>
 #include "max6675.h"
 
-
 // list SPI teensy pins
 int MOSI_0_PIN = 11;  // screenMOSI
 int MISO_0_PIN = 12;  // screenMISO
@@ -67,11 +66,12 @@ void setup() {
 
   // screen
   screenInit();
-  countdownDisplay(4);
+  //countdownDisplay(4);
   
   // timer
   rtcInit();
   startTime = now();
+  drawGraph();
 }
 
 
@@ -150,6 +150,8 @@ void countdownDisplay(int seconds){
 }
 
 void updateDisplayTemps() {
+  gfx->setTextSize(2);
+  gfx->setTextColor(WHITE);
   lastMeatTemp = updateDisplayTemp(10, 10, lastMeatTemp, meatTemp);
   lastOvenTemp = updateDisplayTemp(150, 10, lastOvenTemp, ovenTemp);
   lastRoomTemp = updateDisplayTemp(300, 10, lastRoomTemp, roomTemp);
@@ -157,9 +159,63 @@ void updateDisplayTemps() {
 
 
 void drawAxes() {
-  gfx->drawLine(20, 170, 470, 170, 0xAD55);  // graph separator
-  gfx->drawLine(30, 60, 470, 60, WHITE);  // y-axis
-  gfx->drawLine(10, 250, 470, 250, WHITE);  // x-axis
+  gfx->drawLine(10, 190, 470, 190, WHITE);  // graph separator
+  gfx->drawLine(30, 60, 30, 250, WHITE);  // y-axis
+  gfx->drawLine(10, 230, 470, 230, WHITE);  // x-axis
+}
+
+void drawYGridLines(int x, int y, int x1, int y1, int n, uint16_t color){
+  int y2 = 0;
+  for (int i = 0; i < n; i++) {
+    y2 = y + round(i * (y1-y)/n);
+    gfx->drawLine(x, y2, x1, y2, color);
+  }
+  gfx->drawLine(x, 210, x1, 210, color);  // room temp line
+}
+
+void labelYAxis(int x, int y, int y1, int n, int start, int end, uint16_t color) {
+  gfx->setTextSize(1);
+  gfx->setTextColor(color);
+  int y2 = 0;
+  String value = "";
+  for (int i = 0; i < n; i++) {
+    y2 = y + round(i * (y1-y)/n) - 4;
+    gfx->setCursor(x, y2);
+    value = String(trunc(end - i * (end-start)/n));
+    gfx->print(value.substring(0, value.length() - 3));
+  }
+  gfx->setCursor(x + 4, 206);
+  gfx->print("75");
+}
+
+void labelXAxis(int x, int x1, int y, int n, int start, int end, uint16_t color) {
+  gfx->setTextSize(1);
+  gfx->setTextColor(color);
+  int x2 = 0;
+  String value = "";
+  for (int i = 1; i < n; i++) {
+    x2 = x + round(i * (x1-x)/n) - 2;
+    gfx->setCursor(x2, y);
+    value = String(trunc(start + i * (end-start)/n));
+    gfx->print(value.substring(0, value.length() - 3));
+  }
+}
+
+
+void drawXGridLines(int x, int y, int x1, int y1, int n, uint16_t color){
+  int x2 = 0;
+  for (int i = 0; i < n; i++) {
+    x2 = x + round(i * (x1-x)/n);
+    gfx->drawLine(x2, y, x2, y1, color);
+  }
+}
+
+void drawGraph() {
+  drawYGridLines(25, 70, 470, 190, 6, 0xAD55);
+  drawXGridLines(30, 60, 470, 235, 5, 0xAD55);
+  drawAxes();
+  labelYAxis(5, 70, 190, 6, 100, 220, WHITE);
+  labelXAxis(30, 470, 240, 5, 0, 5, WHITE);
 }
 
 // Information functions --------------------------------------------
