@@ -116,18 +116,13 @@ void loop() {
   if (graphResetTimer >= graphDomain) {
     for (uint i = 0; i < (sizeof(timeList) / sizeof(timeList[0])); i++) {
       plotPoint(timeList[i], roomTempList[i], BLACK, graphDomain);
-      if (i % 2 == 0) {
-        roomTempList[i/2] = roomTempList[i];
-        timeList[i/2] = timeList[i]; 
-        plotPoint(timeList[i/2], roomTempList[i/2], BLUE, graphDomain * 2);
-      }
     }
-    labelXAxis(30, 470, 240, 5, 0, graphDomain / 1000, BLACK);
-
-    
     graphDomain *= 2;
     plotPeriod *= 2;
-    labelXAxis(30, 470, 240, 5, 0, graphDomain / 1000, WHITE);
+    drawGraph(graphDomain);
+    for (uint i = 0; i < 150; i++) {
+      plotPoint(timeList[i], roomTempList[i], BLUE, graphDomain);
+    }
     plotListIndex = 150;
   } 
 
