@@ -32,6 +32,8 @@ String lastOvenTemp = "";
 String lastRoomTemp = "";
 
 int roomTempList[300];
+int meatTempList[300];
+int ovenTempList[300];
 int timeList[300];
 
 MAX6675 meatThermocouple(thermoCLK, meatCS, thermoDO);
@@ -106,8 +108,12 @@ void loop() {
   }
   // graph
   if (plotTimer >= plotPeriod) {
-    plotPoint(runTime, round(meatTemp), YELLOW, graphDomain);
-    roomTempList[plotListIndex] = round(meatTemp);
+    plotPoint(runTime, round(roomTemp), YELLOW, graphDomain / 1000);
+    plotPoint(runTime, round(ovenTemp), BLUE, graphDomain / 1000);
+    plotPoint(runTime, round(meatTemp), RED, graphDomain / 1000);
+    roomTempList[plotListIndex] = round(roomTemp);
+    meatTempList[plotListIndex] = round(meatTemp);
+    ovenTempList[plotListIndex] = round(ovenTemp);
     timeList[plotListIndex] = runTime;
     plotListIndex++;
     plotTimer -= plotPeriod;
@@ -115,13 +121,24 @@ void loop() {
 
   if (graphResetTimer >= graphDomain) {
     for (uint i = 0; i < (sizeof(timeList) / sizeof(timeList[0])); i++) {
-      plotPoint(timeList[i], roomTempList[i], BLACK, graphDomain);
+      plotPoint(timeList[i], roomTempList[i], BLACK, graphDomain / 1000);
+      plotPoint(timeList[i], meatTempList[i], BLACK, graphDomain / 1000);
+      plotPoint(timeList[i], ovenTempList[i], BLACK, graphDomain / 1000);
+      if (i % 2 == 0) {
+        roomTempList[i/2] = roomTempList[i];
+        meatTempList[i/2] = meatTempList[i];
+        ovenTempList[i/2] = ovenTempList[i];
+        timeList[i/2] = timeList[i]; 
+      }
     }
+    labelXAxis(30, 470, 240, 5, 0, graphDomain / 1000, BLACK);
     graphDomain *= 2;
     plotPeriod *= 2;
-    drawGraph(graphDomain);
+    drawGraph(graphDomain / 1000);
     for (uint i = 0; i < 150; i++) {
-      plotPoint(timeList[i], roomTempList[i], BLUE, graphDomain);
+      plotPoint(timeList[i], roomTempList[i], YELLOW, graphDomain / 1000);
+      plotPoint(timeList[i], ovenTempList[i], BLUE, graphDomain / 1000);
+      plotPoint(timeList[i], meatTempList[i], RED, graphDomain / 1000);
     }
     plotListIndex = 150;
   } 
@@ -181,22 +198,22 @@ void plotPoint(int xValue, int yValue, uint16_t color, int xDomain) {
   int x;
   int y;
   int yMin = 100;
-  int yMax = 230;
+  int yMax = 325;
   int boxSize[4] = {30, 60, 470, 190};
-  if (yValue > 100 && yValue < 230) {
-    x = map(xValue, 0, xDomain / 1000, boxSize[0], boxSize[2]);
+  if (yValue > 100 && yValue < 325) {
+    x = map(xValue, 0, xDomain, boxSize[0], boxSize[2]);
     y = map(yValue, yMin, yMax, boxSize[3], boxSize[1]);
     if (x > boxSize[0] + 1) {
       gfx->fillRect(x - 1, y - 1, 3, 3, color);
     } else if (x == boxSize[0]) {
       gfx->fillRect(x + 1, y - 1, 1, 3, color);
     }
-  } else if (yValue > 60 && yValue < 80) {
+  } else if (yValue > 60 && yValue < 90) {
     yMin = 60;
-    yMax = 80;
+    yMax = 90;
     boxSize[1] = 190;
     boxSize[3] = 230;
-    x = map(xValue, 0, xDomain / 1000, boxSize[0], boxSize[2]);
+    x = map(xValue, 0, xDomain, boxSize[0], boxSize[2]);
     y = map(yValue, yMin, yMax, boxSize[3], boxSize[1]);
     if (x > boxSize[0] + 1) {
       gfx->fillRect(x - 1, y - 1, 3, 3, color);
@@ -218,7 +235,7 @@ void drawGraph(int timeBound) {
   drawYGridLines(25, 70, 470, 190, 6, 0xAD55);
   drawXGridLines(30, 60, 470, 235, 5, 0xAD55);
   drawAxes();
-  labelYAxis(5, 70, 190, 6, 100, 220, WHITE);
+  labelYAxis(5, 70, 190, 6, 100, 325, WHITE);
   labelXAxis(30, 470, 240, 5, 0, timeBound, WHITE);
 }
 
@@ -240,7 +257,7 @@ void labelYAxis(int x, int y, int y1, int n, int start, int end, uint16_t color)
     gfx->print(value.substring(0, value.length() - 3));
   }
   gfx->setCursor(x + 4, 206);
-  gfx->print("70");
+  gfx->print("75");
 }
 
 void labelXAxis(int x, int x1, int y, int n, int start, int end, uint16_t color) {
