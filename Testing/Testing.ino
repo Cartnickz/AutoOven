@@ -4,6 +4,7 @@
 #include "TimeLib.h" // for time keeping
 #include <Arduino_GFX_Library.h>
 #include "max6675.h"
+#include <Adafruit_MAX31856.h>
 
 // list SPI teensy pins
 int MOSI_0_PIN = 11;  // screenMOSI
@@ -36,9 +37,15 @@ int meatTempList[300];
 int ovenTempList[300];
 int timeList[300];
 
-MAX6675 meatThermocouple(thermoCLK, meatCS, thermoDO);
+
+
+//MAX6675 meatThermocouple(thermoCLK, meatCS, thermoDO);
+Adafruit_MAX31856 meatThermocouple(meatCS, 34, thermoDO, thermoCLK);
 MAX6675 ovenThermocouple(thermoCLK, ovenCS, thermoDO);
 MAX6675 roomThermocouple(thermoCLK, roomCS, thermoDO);
+
+
+
 
 
 // initialize variables for the screen
@@ -83,6 +90,9 @@ void setup() {
   rtcInit();
   startTime = now();
   drawGraph(graphDomain / 1000);
+
+  meatThermocouple.begin();
+  meatThermocouple.setThermocoupleType(MAX31856_TCTYPE_K);
 }
 
 
@@ -293,7 +303,8 @@ void drawXGridLines(int x, int y, int x1, int y1, int n, uint16_t color){
 
 // Information functions --------------------------------------------
 void gatherTemps() {
-  meatTemp = meatThermocouple.readFahrenheit();
+  //meatTemp = meatThermocouple.readFahrenheit();
+  meatTemp = meatThermocouple.readThermocoupleTemperature() * 9 / 5 + 32;
   ovenTemp = ovenThermocouple.readFahrenheit();
   roomTemp = roomThermocouple.readFahrenheit();
 }
