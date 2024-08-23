@@ -3,7 +3,6 @@
 // import libraries
 #include "TimeLib.h" // for time keeping
 #include <Arduino_GFX_Library.h>
-#include "max6675.h"
 #include <Adafruit_MAX31856.h>
 
 // list SPI teensy pins
@@ -20,33 +19,32 @@ int MISO_2_PIN = 54;
 int SCLK_2_PIN = 45;
 
 // initialize variables for MAX6675s
-int thermoCLK = 37;
-int thermoDO = 33;
-int meatCS = 36;
-int ovenCS = 35;
-int roomCS = 34;
-float meatTemp = 0;
+int thermoCLK = 33;
+int thermoDO = 34;
+int thermoDI = 35;
+int meatCS1 = 17;
+int meatCS2 = 18;
+int ovenCS = 19;
+int roomCS = 20;
+float meatTemp1 = 0;
+float meatTemp2 = 0;
 float ovenTemp = 0;
 float roomTemp = 0;
-String lastMeatTemp = "";
+String lastMeatTemp1 = "";
+String lastMeatTemp2 = "";
 String lastOvenTemp = "";
 String lastRoomTemp = "";
 
 int roomTempList[300];
-int meatTempList[300];
+int meatTempList1[300];
+int meatTempList2[300];
 int ovenTempList[300];
 int timeList[300];
 
-
-
-//MAX6675 meatThermocouple(thermoCLK, meatCS, thermoDO);
-Adafruit_MAX31856 meatThermocouple(meatCS, 34, thermoDO, thermoCLK);
-MAX6675 ovenThermocouple(thermoCLK, ovenCS, thermoDO);
-MAX6675 roomThermocouple(thermoCLK, roomCS, thermoDO);
-
-
-
-
+Adafruit_MAX31856 roomThermocouple(roomCS, thermoDI, thermoDO, thermoCLK);
+Adafruit_MAX31856 ovenThermocouple(ovenCS, thermoDI, thermoDO, thermoCLK);
+Adafruit_MAX31856 meatThermocouple1(meatCS1, thermoDI, thermoDO, thermoCLK);
+Adafruit_MAX31856 meatThermocouple2(meatCS2, thermoDI, thermoDO, thermoCLK);
 
 // initialize variables for the screen
 int screenRST = 40;
@@ -91,8 +89,17 @@ void setup() {
   startTime = now();
   drawGraph(graphDomain / 1000);
 
-  meatThermocouple.begin();
-  meatThermocouple.setThermocoupleType(MAX31856_TCTYPE_K);
+  meatThermocouple1.begin();
+  meatThermocouple1.setThermocoupleType(MAX31856_TCTYPE_K);
+
+  meatThermocouple2.begin();
+  meatThermocouple2.setThermocoupleType(MAX31856_TCTYPE_K);
+
+  roomThermocouple.begin();
+  roomThermocouple.setThermocoupleType(MAX31856_TCTYPE_K);
+
+  ovenThermocouple.begin();
+  ovenThermocouple.setThermocoupleType(MAX31856_TCTYPE_K);
 }
 
 
@@ -120,9 +127,11 @@ void loop() {
   if (plotTimer >= plotPeriod) {
     plotPoint(runTime, round(roomTemp), YELLOW, graphDomain / 1000);
     plotPoint(runTime, round(ovenTemp), BLUE, graphDomain / 1000);
-    plotPoint(runTime, round(meatTemp), RED, graphDomain / 1000);
+    plotPoint(runTime, round(meatTemp1), RED, graphDomain / 1000);
+    plotPoint(runTime, round(meatTemp2), ORANGE, graphDomain / 1000);
     roomTempList[plotListIndex] = round(roomTemp);
-    meatTempList[plotListIndex] = round(meatTemp);
+    meatTempList1[plotListIndex] = round(meatTemp1);
+    meatTempList2[plotListIndex] = round(meatTemp2);
     ovenTempList[plotListIndex] = round(ovenTemp);
     timeList[plotListIndex] = runTime;
     plotListIndex++;
@@ -132,11 +141,13 @@ void loop() {
   if (graphResetTimer >= graphDomain) {
     for (uint i = 0; i < (sizeof(timeList) / sizeof(timeList[0])); i++) {
       plotPoint(timeList[i], roomTempList[i], BLACK, graphDomain / 1000);
-      plotPoint(timeList[i], meatTempList[i], BLACK, graphDomain / 1000);
+      plotPoint(timeList[i], meatTempList1[i], BLACK, graphDomain / 1000);
+      plotPoint(timeList[i], meatTempList2[i], BLACK, graphDomain / 1000);
       plotPoint(timeList[i], ovenTempList[i], BLACK, graphDomain / 1000);
       if (i % 2 == 0) {
         roomTempList[i/2] = roomTempList[i];
-        meatTempList[i/2] = meatTempList[i];
+        meatTempList1[i/2] = meatTempList1[i];
+        meatTempList2[i/2] = meatTempList2[i];
         ovenTempList[i/2] = ovenTempList[i];
         timeList[i/2] = timeList[i]; 
       }
@@ -148,7 +159,8 @@ void loop() {
     for (uint i = 0; i < 150; i++) {
       plotPoint(timeList[i], roomTempList[i], YELLOW, graphDomain / 1000);
       plotPoint(timeList[i], ovenTempList[i], BLUE, graphDomain / 1000);
-      plotPoint(timeList[i], meatTempList[i], RED, graphDomain / 1000);
+      plotPoint(timeList[i], meatTempList1[i], RED, graphDomain / 1000);
+      plotPoint(timeList[i], meatTempList2[i], ORANGE, graphDomain / 1000);
     }
     plotListIndex = 150;
   } 
@@ -236,9 +248,10 @@ void plotPoint(int xValue, int yValue, uint16_t color, int xDomain) {
 void updateDisplayTemps() {
   gfx->setTextSize(2);
   gfx->setTextColor(WHITE);
-  lastMeatTemp = updateDisplayTemp(10, 10, lastMeatTemp, meatTemp);
-  lastOvenTemp = updateDisplayTemp(150, 10, lastOvenTemp, ovenTemp);
-  lastRoomTemp = updateDisplayTemp(300, 10, lastRoomTemp, roomTemp);
+  lastMeatTemp1 = updateDisplayTemp(10, 10, lastMeatTemp1, meatTemp1);
+  lastMeatTemp2 = updateDisplayTemp(110, 10, lastMeatTemp2, meatTemp2);
+  lastOvenTemp = updateDisplayTemp(210, 10, lastOvenTemp, ovenTemp);
+  lastRoomTemp = updateDisplayTemp(310, 10, lastRoomTemp, roomTemp);
 }
 
 void drawGraph(int timeBound) {
@@ -304,15 +317,18 @@ void drawXGridLines(int x, int y, int x1, int y1, int n, uint16_t color){
 // Information functions --------------------------------------------
 void gatherTemps() {
   //meatTemp = meatThermocouple.readFahrenheit();
-  meatTemp = meatThermocouple.readThermocoupleTemperature() * 9 / 5 + 32;
-  ovenTemp = ovenThermocouple.readFahrenheit();
-  roomTemp = roomThermocouple.readFahrenheit();
+  meatTemp1 = meatThermocouple1.readThermocoupleTemperature() * 9 / 5 + 32;
+  meatTemp1 = meatThermocouple2.readThermocoupleTemperature() * 9 / 5 + 32;
+  ovenTemp = ovenThermocouple.readThermocoupleTemperature() * 9 / 5 + 32;
+  roomTemp = roomThermocouple.readThermocoupleTemperature() * 9 / 5 + 32;
 }
 
 void serialOutTemps() {
   Serial.print(runTime);
   Serial.print("\t");
-  Serial.print(meatTemp);
+  Serial.print(meatTemp1);
+  Serial.print("\t");
+  Serial.print(meatTemp2);
   Serial.print("\t");
   Serial.print(ovenTemp);
   Serial.print("\t");
