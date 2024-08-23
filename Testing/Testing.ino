@@ -1,4 +1,4 @@
-// CartnickLabs
+gx1// CartnickLabs
 
 // import libraries
 #include "TimeLib.h" // for time keeping
@@ -164,7 +164,7 @@ void loop() {
         timeList[i/2] = timeList[i]; 
       }
     }
-    labelXAxis(30, 470, 240, 5, 0, graphDomain / 1000, BLACK);
+    labelXAxis(gx0, gx1, gy2+10, 5, 0, graphDomain / 1000, BLACK);
     graphDomain *= 2;
     plotPeriod *= 2;
     drawGraph(graphDomain / 1000);
@@ -263,13 +263,13 @@ void drawGraph() {
   drawXGridLines(gx0,   gy0,    gx1, gy2+5, 5, 0xAD55);
   drawAxes();
   labelYAxis(gx0-25, gy0+10, gy1,     6, yMinA, yMaxA, WHITE);
-  labelXAxis(gx0   , gx1   , gy2K+10, 5, 0, graphDomain / 1000, WHITE);
+  labelXAxis(gx0   , gx1   , gy2+10, 5, 0, graphDomain / 1000, WHITE);
 }
 
 void drawAxes() {
-  gfx->drawLine(10, 190, 470, 190, WHITE);  // graph separator
-  gfx->drawLine(30, 60, 30, 250, WHITE);  // y-axis
-  gfx->drawLine(10, 230, 470, 230, WHITE);  // x-axis
+  gfx->drawLine(gx0-20, gy1, gx1, gy1, WHITE);  // graph separator
+  gfx->drawLine(gx0, gy0, gx0, gy2+20, WHITE);  // y-axis
+  gfx->drawLine(gx0-20, gy2, gx1, gy2, WHITE);  // x-axis
 }
 
 void labelYAxis(int x, int y, int y1, int n, int start, int end, uint16_t color) {
@@ -283,8 +283,8 @@ void labelYAxis(int x, int y, int y1, int n, int start, int end, uint16_t color)
     value = String(trunc(end - i * (end-start)/n));
     gfx->print(value.substring(0, value.length() - 3));
   }
-  gfx->setCursor(x + 4, 206);
-  gfx->print("75");
+  gfx->setCursor(x + 4, (gy1+gy2)/2 - 4;
+  gfx->print(String((yMinB+yMaxB)/2);
 }
 
 void labelXAxis(int x, int x1, int y, int n, int start, int end, uint16_t color) {
@@ -306,7 +306,7 @@ void drawYGridLines(int x, int y, int x1, int y1, int n, uint16_t color){
     y2 = y + round(i * (y1-y)/n);
     gfx->drawLine(x, y2, x1, y2, color);
   }
-  gfx->drawLine(x, 210, x1, 210, color);  // room temp line
+  gfx->drawLine(x, (gy1+gy2)/2, x1, (gy1+gy2)/2, color);  // room temp line
 }
 
 void drawXGridLines(int x, int y, int x1, int y1, int n, uint16_t color){
