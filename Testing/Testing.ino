@@ -68,6 +68,18 @@ elapsedMillis secondsTimer;
 elapsedMillis graphResetTimer;
 elapsedMillis plotTimer;
 
+//initialize variables for the graphs
+short int gx0 = 30;
+short int gx1 = 470;
+short int gy0 = 60;
+short int gy1 = 190;
+short int gy2 = 230;
+
+short int yMinA = 100;
+short int yMaxA = 325;
+short int yMinB = 60;
+short int yMaxB = 90; 
+
 // initialize other variables
 float tempSet = 0;
 unsigned long int graphDomain = 300000;
@@ -219,27 +231,20 @@ void countdownDisplay(int seconds){
 void plotPoint(int xValue, int yValue, uint16_t color, int xDomain) {
   int x;
   int y;
-  int yMin = 100;
-  int yMax = 325;
-  int boxSize[4] = {30, 60, 470, 190};
-  if (yValue > 100 && yValue < 325) {
-    x = map(xValue, 0, xDomain, boxSize[0], boxSize[2]);
-    y = map(yValue, yMin, yMax, boxSize[3], boxSize[1]);
-    if (x > boxSize[0] + 1) {
+  if (yValue > yMinA && yValue < yMaxA) {
+    x = map(xValue, 0, xDomain, gx0, gx1);
+    y = map(yValue, yMinA, yMaxA, gy1, gy0);
+    if (x > gx0 + 1) {
       gfx->fillRect(x - 1, y - 1, 3, 3, color);
-    } else if (x == boxSize[0]) {
+    } else if (x == gx0) {
       gfx->fillRect(x + 1, y - 1, 1, 3, color);
     }
-  } else if (yValue > 60 && yValue < 90) {
-    yMin = 60;
-    yMax = 90;
-    boxSize[1] = 190;
-    boxSize[3] = 230;
-    x = map(xValue, 0, xDomain, boxSize[0], boxSize[2]);
-    y = map(yValue, yMin, yMax, boxSize[3], boxSize[1]);
-    if (x > boxSize[0] + 1) {
+  } else if (yValue > yMinB && yValue < yMaxB) {
+    x = map(xValue, 0, xDomain, gx0, gx1);
+    y = map(yValue, yMinB, yMaxB, gy2, gy1);
+    if (x > gx0 + 1) {
       gfx->fillRect(x - 1, y - 1, 3, 3, color);
-    } else if (x == boxSize[0]) {
+    } else if (x == gx0) {
       gfx->fillRect(x + 1, y - 1, 1, 3, color);
     }
   }
@@ -253,12 +258,12 @@ void updateDisplayTemps() {
   lastRoomTemp = updateDisplayTemp(340, 10, lastRoomTemp, roomTemp, YELLOW);
 }
 
-void drawGraph(int timeBound) {
-  drawYGridLines(25, 70, 470, 190, 6, 0xAD55);
-  drawXGridLines(30, 60, 470, 235, 5, 0xAD55);
+void drawGraph() {
+  drawYGridLines(gx0-5, gy0+10, gx1, gy1,   6, 0xAD55);
+  drawXGridLines(gx0,   gy0,    gx1, gy2+5, 5, 0xAD55);
   drawAxes();
-  labelYAxis(5, 70, 190, 6, 100, 325, WHITE);
-  labelXAxis(30, 470, 240, 5, 0, timeBound, WHITE);
+  labelYAxis(gx0-25, gy0+10, gy1,     6, yMinA, yMaxA, WHITE);
+  labelXAxis(gx0   , gx1   , gy2K+10, 5, 0, graphDomain / 1000, WHITE);
 }
 
 void drawAxes() {
