@@ -137,6 +137,32 @@ void loop() {
   }
   // graph
   if (plotTimer >= plotPeriod) {
+    plotPoints();
+  }
+
+  if (graphResetTimer >= graphDomain) {
+    resetGraph();
+  } 
+
+}
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ |  
+ | Important junk below this block.
+ |
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+// Display functions  --------------------------------------------
+void screenInit(){
+  gfx->begin();
+  gfx->fillScreen(BLACK);
+  pinMode(screenBL, OUTPUT);
+  digitalWrite(screenBL, HIGH);
+  gfx->setTextSize(2);
+}
+
+void plotPoints(){
     plotPoint(runTime, round(roomTemp), YELLOW, graphDomain / 1000);
     plotPoint(runTime, round(ovenTemp), BLUE, graphDomain / 1000);
     plotPoint(runTime, round(meatTemp1), RED, graphDomain / 1000);
@@ -148,9 +174,9 @@ void loop() {
     timeList[plotListIndex] = runTime;
     plotListIndex++;
     plotTimer -= plotPeriod;
-  }
+}
 
-  if (graphResetTimer >= graphDomain) {
+void resetGraph(){
     for (uint i = 0; i < (sizeof(timeList) / sizeof(timeList[0])); i++) {
       plotPoint(timeList[i], roomTempList[i], BLACK, graphDomain / 1000);
       plotPoint(timeList[i], meatTempList1[i], BLACK, graphDomain / 1000);
@@ -175,25 +201,8 @@ void loop() {
       plotPoint(timeList[i], meatTempList2[i], ORANGE, graphDomain / 1000);
     }
     plotListIndex = 150;
-  } 
-
 }
 
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- |  
- | Important junk below this block.
- |
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-
-// Display functions  --------------------------------------------
-void screenInit(){
-  gfx->begin();
-  gfx->fillScreen(BLACK);
-  pinMode(screenBL, OUTPUT);
-  digitalWrite(screenBL, HIGH);
-  gfx->setTextSize(2);
-}
 
 String updateDisplayTemp(int x, int y, String lastTemp, float currentTemp, uint16_t color) {
   String printTempVar = String(currentTemp) + " F";
