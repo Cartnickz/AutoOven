@@ -78,7 +78,7 @@ int plotListIndex = 0;
 void setup() {
   // setup Serial
   Serial.begin(115200);
-  delay(1000);
+  delay(2000);
 
   // screen
   screenInit();
@@ -183,13 +183,13 @@ void screenInit(){
   gfx->setTextSize(2);
 }
 
-String updateDisplayTemp(int x, int y, String lastTemp, float currentTemp) {
+String updateDisplayTemp(int x, int y, String lastTemp, float currentTemp, uint16_t color) {
   String printTempVar = String(currentTemp) + " F";
   gfx->setCursor(x, y);                      
   gfx->setTextColor(BLACK);
   gfx->print(lastTemp);
   gfx->setCursor(x, y);
-  gfx->setTextColor(WHITE);
+  gfx->setTextColor(color);
   gfx->print(printTempVar);
   return printTempVar;
 }
@@ -247,11 +247,10 @@ void plotPoint(int xValue, int yValue, uint16_t color, int xDomain) {
 
 void updateDisplayTemps() {
   gfx->setTextSize(2);
-  gfx->setTextColor(WHITE);
-  lastMeatTemp1 = updateDisplayTemp(10, 10, lastMeatTemp1, meatTemp1);
-  lastMeatTemp2 = updateDisplayTemp(110, 10, lastMeatTemp2, meatTemp2);
-  lastOvenTemp = updateDisplayTemp(210, 10, lastOvenTemp, ovenTemp);
-  lastRoomTemp = updateDisplayTemp(310, 10, lastRoomTemp, roomTemp);
+  lastMeatTemp1 = updateDisplayTemp(10, 10, lastMeatTemp1, meatTemp1, RED);
+  lastMeatTemp2 = updateDisplayTemp(120, 10, lastMeatTemp2, meatTemp2, ORANGE);
+  lastOvenTemp = updateDisplayTemp(230, 10, lastOvenTemp, ovenTemp, BLUE);
+  lastRoomTemp = updateDisplayTemp(340, 10, lastRoomTemp, roomTemp, YELLOW);
 }
 
 void drawGraph(int timeBound) {
@@ -318,7 +317,7 @@ void drawXGridLines(int x, int y, int x1, int y1, int n, uint16_t color){
 void gatherTemps() {
   //meatTemp = meatThermocouple.readFahrenheit();
   meatTemp1 = meatThermocouple1.readThermocoupleTemperature() * 9 / 5 + 32;
-  meatTemp1 = meatThermocouple2.readThermocoupleTemperature() * 9 / 5 + 32;
+  meatTemp2 = meatThermocouple2.readThermocoupleTemperature() * 9 / 5 + 32;
   ovenTemp = ovenThermocouple.readThermocoupleTemperature() * 9 / 5 + 32;
   roomTemp = roomThermocouple.readThermocoupleTemperature() * 9 / 5 + 32;
 }
