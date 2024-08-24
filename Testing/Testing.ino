@@ -121,7 +121,6 @@ void loop() {
   // gather temperatures and update screen
   if (thermoTimer >= 500) {
     gatherTemps();
-    delay(250);
     updateDisplayTemps();
     thermoTimer -= 500;
   }
