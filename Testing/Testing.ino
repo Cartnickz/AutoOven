@@ -304,7 +304,7 @@ void labelXAxis(int x, int x1, int y, int n, int start, int end, uint16_t color)
     x2 = x + round(i * (x1-x)/n) - 2;
     gfx->setCursor(x2, y);
     value = String(trunc(start + i * (end-start)/n / 60));
-    gfx->print(value.substring(0, value.length() - 3));
+    gfx->print(value.substring(0, value.length() - 3) + "m");
   }
 }
 
