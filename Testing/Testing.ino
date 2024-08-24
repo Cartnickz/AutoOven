@@ -1,4 +1,4 @@
-gx1// CartnickLabs
+// CartnickLabs
 
 // import libraries
 #include "TimeLib.h" // for time keeping
@@ -99,7 +99,7 @@ void setup() {
   // timer
   rtcInit();
   startTime = now();
-  drawGraph(graphDomain / 1000);
+  drawGraph();
 
   meatThermocouple1.begin();
   meatThermocouple1.setThermocoupleType(MAX31856_TCTYPE_K);
@@ -192,7 +192,7 @@ void resetGraph(){
     labelXAxis(gx0, gx1, gy2+10, 5, 0, graphDomain / 1000, BLACK);
     graphDomain *= 2;
     plotPeriod *= 2;
-    drawGraph(graphDomain / 1000);
+    drawGraph();
     for (uint i = 0; i < 150; i++) {
       plotPoint(timeList[i], roomTempList[i], YELLOW, graphDomain / 1000);
       plotPoint(timeList[i], ovenTempList[i], BLUE, graphDomain / 1000);
@@ -291,8 +291,8 @@ void labelYAxis(int x, int y, int y1, int n, int start, int end, uint16_t color)
     value = String(trunc(end - i * (end-start)/n));
     gfx->print(value.substring(0, value.length() - 3));
   }
-  gfx->setCursor(x + 4, (gy1+gy2)/2 - 4;
-  gfx->print(String((yMinB+yMaxB)/2);
+  gfx->setCursor(x + 4, (gy1+gy2)/2 - 4);
+  gfx->print(String((yMinB+yMaxB)/2));
 }
 
 void labelXAxis(int x, int x1, int y, int n, int start, int end, uint16_t color) {
